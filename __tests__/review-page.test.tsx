@@ -91,7 +91,7 @@ describe("ReviewSection", () => {
         gender: "Male",
         relationship: "Son",
       },
-      amount: 300,
+      amount: "100,000",
     });
     expect(mockDispatch).toHaveBeenCalled();
   });
