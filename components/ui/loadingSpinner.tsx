@@ -19,6 +19,7 @@ export const LoadingSpinner = ({
       {...props}
       viewBox="0 0 24 24"
       fill="none"
+      data-testid="loading-spinner"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
