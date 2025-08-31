@@ -1,24 +1,17 @@
 /**
  * @jest-environment jsdom
  */
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  within,
-  logRoles,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import UserDetailsForm from "@/components/onboarding-workflow/principleDetails";
 
-// mock redux hooks
+// Mock redux hooks
 jest.mock("@/lib/hooks", () => ({
   useAppDispatch: jest.fn(),
   useAppSelector: jest.fn(),
 }));
 
-// import after mocking
+// Import after mocking
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
   handleNextStep,
@@ -41,18 +34,19 @@ describe("UserDetailsForm", () => {
   it("renders form fields", () => {
     render(<UserDetailsForm />);
 
-    expect(screen.getByPlaceholderText(/Full Names/i)).toBeInTheDocument();
-    expect(screen.getByText(/Date Of Birth/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/National ID/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Mobile Number/i)).toBeInTheDocument();
-    expect(screen.getByText(/Gender/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Address/i)).toBeInTheDocument();
+    expect(screen.getByTestId("full-name-input")).toBeInTheDocument();
+    expect(screen.getByTestId("dob-button")).toBeInTheDocument();
+    expect(screen.getByTestId("national-id-input")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-number-input")).toBeInTheDocument();
+    expect(screen.getByTestId("gender-select")).toBeInTheDocument();
+    expect(screen.getByTestId("address-input")).toBeInTheDocument();
   });
 
   it("shows validation errors when submitting empty form", async () => {
     render(<UserDetailsForm />);
 
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    const nextButton = screen.getByTestId("next-button");
+    fireEvent.click(nextButton);
 
     await waitFor(() => {
       expect(
@@ -68,7 +62,7 @@ describe("UserDetailsForm", () => {
         screen.getByText(/Mobile number must be at least 10 characters/i)
       ).toBeInTheDocument();
       expect(
-        screen.getByText(/Gender must be at least 2 characters/i)
+        screen.getByText(/Gender must be at least 4 characters/i)
       ).toBeInTheDocument();
       expect(
         screen.getByText(/Address must be at least 2 characters/i)
@@ -78,52 +72,70 @@ describe("UserDetailsForm", () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  //   it("dispatches data when valid form is submitted", async () => {
-  //     const user = userEvent.setup();
-  //     render(<UserDetailsForm />);
+  it("dispatches data when valid form is submitted", async () => {
+    const user = userEvent.setup();
+    render(<UserDetailsForm />);
 
-  //     await user.type(screen.getByPlaceholderText(/Full Names/i), "John Doe");
+    // Fill in form fields
+    await user.type(
+      screen.getByTestId("full-name-input") as HTMLInputElement,
+      "John Doe"
+    );
+    await user.type(
+      screen.getByTestId("national-id-input") as HTMLInputElement,
+      "12345678"
+    );
+    await user.type(
+      screen.getByTestId("mobile-number-input") as HTMLInputElement,
+      "0712345678"
+    );
+    await user.type(
+      screen.getByTestId("address-input") as HTMLInputElement,
+      "123 Main St"
+    );
 
-  //     // Open datepicker and pick a date
-  //     await user.click(screen.getByText(/Date Of Birth/i));
-  //     await user.click(screen.getByRole("button", { name: /August 6th, 2025/i }));
+    // Set gender directly with change event
+    const genderSelect = screen.getByTestId(
+      "gender-select"
+    ) as HTMLSelectElement;
+    fireEvent.change(genderSelect, { target: { value: "female" } });
+    await user.click(genderSelect);
 
-  //     await user.type(screen.getByPlaceholderText(/National ID/i), "12345678");
-  //     await user.type(
-  //       screen.getByPlaceholderText(/Mobile Number/i),
-  //       "0712345678"
-  //     );
+    // Set dob directly to bypass datepicker issues
+    const dobButton = screen.getByTestId("dob-button");
+    fireEvent.click(dobButton); // Open popover
+    await waitFor(async () => {
+      const dateButton = await screen.findByRole("button", {
+        name: new RegExp(`August 6th, 2025`, "i"),
+      });
+      await user.click(dateButton);
+    });
 
-  //     const combo = screen.getByRole("combobox");
-  //     await user.click(combo);
+    const nextButton = screen.getByTestId("next-button");
+    await user.click(nextButton);
 
-  //     const femaleOption = await screen.findByRole("option", { name: /Female/i });
-  //     await user.click(femaleOption);
-
-  //     await user.type(screen.getByPlaceholderText(/Address/i), "123 Main St");
-
-  //     await user.click(screen.getByRole("button", { name: /next/i }));
-
-  //     await waitFor(() => {
-  //       expect(mockDispatch).toHaveBeenCalledWith(
-  //         handlePrincipalAccount(
-  //           expect.objectContaining({
-  //             fullName: expect.any(String),
-  //             dob: expect.any(String),
-  //             nationalId: expect.any(String),
-  //             gender: expect.any(String),
-  //             address: expect.any(String),
-  //             mobileNumber: expect.any(String),
-  //           })
-  //         )
-  //       );
-  //       expect(mockDispatch).toHaveBeenCalledWith(handleNextStep());
-  //     });
-  //   });
+    await waitFor(
+      () => {
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: "onBoardingProcess/handlePrincipalAccount",
+          payload: {
+            fullName: "John Doe",
+            dob: expect.stringMatching(/2025-08-06/),
+            nationalId: "12345678",
+            mobileNumber: "0712345678",
+            gender: "female",
+            address: "123 Main St",
+          },
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(handleNextStep());
+      },
+      { timeout: 2000 }
+    );
+  });
 
   it("dispatches handlePreviousStep when back button is clicked", () => {
     render(<UserDetailsForm />);
-    fireEvent.click(screen.getByRole("button", { name: /back/i }));
+    fireEvent.click(screen.getByTestId("back-button"));
 
     expect(mockDispatch).toHaveBeenCalledWith(handlePreviousStep());
   });

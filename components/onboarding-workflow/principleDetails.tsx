@@ -49,8 +49,8 @@ const formSchema = z.object({
   nationalId: z.string().min(8, {
     message: "National ID must be at least 8 characters.",
   }),
-  gender: z.string().min(2, {
-    message: "Gender must be at least 2 characters.",
+  gender: z.string().min(4, {
+    message: "Gender must be at least 4 characters.",
   }),
   address: z.string().min(2, {
     message: "Address must be at least 2 characters.",
@@ -99,19 +99,23 @@ const UserDetailsForm = () => {
       </p>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6"
+          data-testid="form"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Full Name</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="Full Names"
+                      data-testid="full-name-input"
                     />
                   </FormControl>
                   <FormMessage />
@@ -124,31 +128,23 @@ const UserDetailsForm = () => {
               name="dob"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel></FormLabel> */}
                   <FormControl>
-                    {/* <Input
-                      {...field}
-                      type="date"
-                      className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
-                    /> */}
-
                     <Popover>
                       <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full text-left bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value.toString(), "yyyy-MM-dd")
-                            ) : (
-                              <span>Date Of Birth</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 text-[#000000]" />
-                          </Button>
-                        </FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full text-left bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
+                          )}
+                          data-testid="dob-button"
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "yyyy-MM-dd")
+                          ) : (
+                            <span>Date Of Birth</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 text-[#000000]" />
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
@@ -157,8 +153,7 @@ const UserDetailsForm = () => {
                             field.value ? new Date(field.value) : undefined
                           }
                           onDayClick={(date) => {
-                            const formattedDate = date.toISOString(); // Convert to ISO string
-                            field.onChange(formattedDate); // Pass the formatted date as a string
+                            field.onChange(format(date, "yyyy-MM-dd"));
                           }}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -178,12 +173,12 @@ const UserDetailsForm = () => {
               name="nationalId"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>National ID</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="National ID"
+                      data-testid="national-id-input"
                     />
                   </FormControl>
                   <FormMessage />
@@ -196,12 +191,12 @@ const UserDetailsForm = () => {
               name="mobileNumber"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Mobile Number</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="Mobile Number"
+                      data-testid="mobile-number-input"
                     />
                   </FormControl>
                   <FormMessage />
@@ -220,7 +215,7 @@ const UserDetailsForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger
-                        data-testid="select"
+                        data-testid="gender-select"
                         className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       >
                         <SelectValue
@@ -238,12 +233,14 @@ const UserDetailsForm = () => {
                         Male
                       </SelectItem>
                       <SelectItem
+                        data-testid="gender-option-female"
                         className="text-[#000000] font-light"
                         value="female"
                       >
                         Female
                       </SelectItem>
                       <SelectItem
+                        data-testid="gender-option-other"
                         className="text-[#000000] font-light"
                         value="other"
                       >
@@ -261,12 +258,12 @@ const UserDetailsForm = () => {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Address</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="Address"
+                      data-testid="address-input"
                     />
                   </FormControl>
                   <FormMessage />
@@ -281,6 +278,7 @@ const UserDetailsForm = () => {
               variant="outline"
               onClick={onBack}
               className="px-6 py-3"
+              data-testid="back-button"
             >
               Back
             </Button>
@@ -288,6 +286,7 @@ const UserDetailsForm = () => {
             <Button
               type="submit"
               className="px-8 py-3 bg-[#FBA92D] hover:bg-orange-600"
+              data-testid="next-button"
             >
               Next
             </Button>
