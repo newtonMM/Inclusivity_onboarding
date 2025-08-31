@@ -1,3 +1,4 @@
+// In DependantDetails.tsx
 "use client";
 
 import React from "react";
@@ -9,7 +10,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -78,42 +78,53 @@ const DependantDetails = () => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof dependantsDetailsSchema>) => {
-    dispatch(handleDependants(data));
+  const onSubmit = (data: DependantsDetails) => {
+    console.log("Form onSubmit called with data:", data);
+    const normalizedData = {
+      ...data,
+      dateOfBirth: format(new Date(data.dateOfBirth), "yyyy-MM-dd"),
+    };
+    console.log("Normalized data:", normalizedData);
+    dispatch(handleDependants(normalizedData));
     dispatch(handleNextStep());
   };
 
   const onBack = () => {
     dispatch(handlePreviousStep());
   };
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" data-testid="dependant-details-form">
       <h2 className="text-2xl text-[#383838] font-semibold mb-4">
         Dependants Details
       </h2>
-      <p className="text-[#000000] font-light text-lg mb-12 leading-relaxed mb-8 leading-relaxed">
+      <p className="text-[#000000] font-light text-lg mb-12 leading-relaxed">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eu sem sit
         amet risus eleifend efficitur euismod vel mi. Proin vel turpis quis
         massa ultrices placerat eleifend a augue.
       </p>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6"
+          data-testid="form"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Full Name</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="Full Name"
+                      data-testid="full-name-input"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage data-testid="full-name-error" />
                 </FormItem>
               )}
             />
@@ -123,25 +134,23 @@ const DependantDetails = () => {
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Date Of Birth</FormLabel> */}
                   <FormControl>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full text-left bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value.toString(), "yyyy-MM-dd")
-                            ) : (
-                              <span>Date Of Birth</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 text-[#000000]" />
-                          </Button>
-                        </FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full text-left bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
+                          )}
+                          data-testid="date-of-birth-button"
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "yyyy-MM-dd")
+                          ) : (
+                            <span>Date Of Birth</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 text-[#000000]" />
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
@@ -150,8 +159,7 @@ const DependantDetails = () => {
                             field.value ? new Date(field.value) : undefined
                           }
                           onDayClick={(date) => {
-                            const formattedDate = date.toISOString(); // Convert to ISO string
-                            field.onChange(formattedDate); // Pass the formatted date as a string
+                            field.onChange(format(date, "yyyy-MM-dd"));
                           }}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -161,7 +169,7 @@ const DependantDetails = () => {
                       </PopoverContent>
                     </Popover>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage data-testid="date-of-birth-error" />
                 </FormItem>
               )}
             />
@@ -171,15 +179,15 @@ const DependantDetails = () => {
               name="nationalId"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>National ID</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="National ID"
+                      data-testid="national-id-input"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage data-testid="national-id-error" />
                 </FormItem>
               )}
             />
@@ -189,15 +197,15 @@ const DependantDetails = () => {
               name="mobileNumber"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Mobile Number</FormLabel> */}
                   <FormControl>
                     <Input
                       {...field}
                       className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
                       placeholder="Mobile Number"
+                      data-testid="mobile-number-input"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage data-testid="mobile-number-error" />
                 </FormItem>
               )}
             />
@@ -207,13 +215,15 @@ const DependantDetails = () => {
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Gender</FormLabel> */}
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light">
+                      <SelectTrigger
+                        className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
+                        data-testid="gender-select"
+                      >
                         <SelectValue
                           className="text-[#000000] font-light"
                           placeholder="Gender"
@@ -224,24 +234,27 @@ const DependantDetails = () => {
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="male"
+                        data-testid="gender-option-male"
                       >
                         Male
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="female"
+                        data-testid="gender-option-female"
                       >
                         Female
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="other"
+                        data-testid="gender-option-other"
                       >
                         Other
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage data-testid="gender-error" />
                 </FormItem>
               )}
             />
@@ -251,53 +264,60 @@ const DependantDetails = () => {
               name="relationship"
               render={({ field }) => (
                 <FormItem>
-                  {/* <FormLabel>Relationship</FormLabel> */}
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light">
+                      <SelectTrigger
+                        className="bg-[#F7F7F7] border-[#A7A7A7] rounded-lg h-11 w-full text-[#000000] font-light placeholder:text-[#000000] placeholder:font-light"
+                        data-testid="relationship-select"
+                      >
                         <SelectValue
                           className="text-[#000000] font-light"
                           placeholder="Relationship"
                         />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="text-[#000000] font-light">
+                    <SelectContent>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="spouse"
+                        data-testid="relationship-option-spouse"
                       >
                         Spouse
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="child"
+                        data-testid="relationship-option-child"
                       >
                         Child
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="parent"
+                        data-testid="relationship-option-parent"
                       >
                         Parent
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="sibling"
+                        data-testid="relationship-option-sibling"
                       >
                         Sibling
                       </SelectItem>
                       <SelectItem
                         className="text-[#000000] font-light"
                         value="other"
+                        data-testid="relationship-option-other"
                       >
                         Other
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage data-testid="relationship-error" />
                 </FormItem>
               )}
             />
@@ -309,6 +329,7 @@ const DependantDetails = () => {
               variant="outline"
               onClick={onBack}
               className="px-6 py-3"
+              data-testid="back-button"
             >
               Back
             </Button>
@@ -316,6 +337,7 @@ const DependantDetails = () => {
             <Button
               type="submit"
               className="px-8 py-3 bg-[#FBA92D] hover:bg-orange-600"
+              data-testid="next-button"
             >
               Next
             </Button>
