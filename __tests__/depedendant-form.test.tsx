@@ -1,124 +1,168 @@
-import { render, screen, waitFor } from "@testing-library/react";
+/**
+ * @jest-environment jsdom
+ */
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DependantDetails from "@/components/onboarding-workflow/dependantDetails";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  handleDependants,
-  handleNextStep,
-  handlePreviousStep,
-} from "@/features/handleOboarding.slice";
 
-// --- mocks ---
+// Mock redux hooks
 jest.mock("@/lib/hooks", () => ({
   useAppDispatch: jest.fn(),
   useAppSelector: jest.fn(),
 }));
 
-const mockDispatch = jest.fn();
+// Import after mocking
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import {
+  handleNextStep,
+  handlePreviousStep,
+  handleDependants,
+} from "@/features/handleOboarding.slice";
 
-describe("DependantDetails form", () => {
+describe("DependantDetails Form", () => {
+  const mockDispatch = jest.fn();
+
   beforeEach(() => {
-    jest.clearAllMocks();
     (useAppDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    (useAppSelector as jest.Mock).mockReturnValue({});
+    (useAppSelector as jest.Mock).mockImplementation((selectorFn) =>
+      selectorFn({ Onboarding: { dependantDetails: null } })
+    );
+
+    jest.clearAllMocks();
   });
 
-  it("renders all input fields", () => {
+  it("renders form fields", () => {
     render(<DependantDetails />);
 
-    expect(screen.getByPlaceholderText(/Full Name/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/National ID/i)).toBeInTheDocument();
-    expect(screen.getByText(/Date Of Birth/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Mobile Number/i)).toBeInTheDocument();
-    expect(screen.getByText(/Gender/i)).toBeInTheDocument();
-    expect(screen.getByText(/Relationship/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Next/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Back/i })).toBeInTheDocument();
+    expect(screen.getByTestId("dependant-details-form")).toBeInTheDocument();
+    expect(screen.getByTestId("full-name-input")).toBeInTheDocument();
+    expect(screen.getByTestId("date-of-birth-button")).toBeInTheDocument();
+    expect(screen.getByTestId("national-id-input")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-number-input")).toBeInTheDocument();
+    expect(screen.getByTestId("gender-select")).toBeInTheDocument();
+    expect(screen.getByTestId("relationship-select")).toBeInTheDocument();
+    expect(screen.getByTestId("back-button")).toBeInTheDocument();
+    expect(screen.getByTestId("next-button")).toBeInTheDocument();
   });
 
-  //   it("dispatches dependants data on valid submit", async () => {
-  //     const user = userEvent.setup();
-  //     render(<DependantDetails />);
+  it("shows validation errors when submitting empty form", async () => {
+    render(<DependantDetails />);
 
-  //     await user.type(screen.getByPlaceholderText(/Full Name/i), "Jane Doe");
+    const nextButton = screen.getByTestId("next-button");
+    fireEvent.click(nextButton);
 
-  //     // open calendar and pick today
-  //     await user.click(screen.getByText(/Date Of Birth/i));
-  //     const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
-  //     const dayButton = screen.getByRole("button", { name: new RegExp(today) });
-  //     await user.click(dayButton);
+    await waitFor(() => {
+      expect(screen.getByTestId("full-name-error")).toHaveTextContent(
+        /Full name must be at least 2 characters/i
+      );
+      expect(screen.getByTestId("date-of-birth-error")).toHaveTextContent(
+        /Date of birth is required/i
+      );
+      expect(screen.getByTestId("national-id-error")).toHaveTextContent(
+        /National ID must be at least 6 characters/i
+      );
+      expect(screen.getByTestId("mobile-number-error")).toHaveTextContent(
+        /Mobile number must be at least 10 digits/i
+      );
+      expect(screen.getByTestId("gender-error")).toHaveTextContent(
+        /Please select a gender/i
+      );
+      expect(screen.getByTestId("relationship-error")).toHaveTextContent(
+        /Please select a relationship/i
+      );
+    });
 
-  //     await user.type(screen.getByPlaceholderText(/National ID/i), "87654321");
-  //     await user.type(
-  //       screen.getByPlaceholderText(/Mobile Number/i),
-  //       "0712345678"
-  //     );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
 
-  //     // gender select
-  //     await user.click(screen.getByRole("combobox", { name: /Gender/i }));
-  //     await user.click(await screen.findByRole("option", { name: /Female/i }));
-
-  //     // relationship select
-  //     await user.click(screen.getByRole("combobox", { name: /Relationship/i }));
-  //     await user.click(await screen.findByRole("option", { name: /Child/i }));
-
-  //     // submit
-  //     await user.click(screen.getByRole("button", { name: /Next/i }));
-
-  //     await waitFor(() => {
-  //       expect(mockDispatch).toHaveBeenCalledWith(
-  //         handleDependants(
-  //           expect.objectContaining({
-  //             fullName: "Jane Doe",
-  //             nationalId: "87654321",
-  //             dateOfBirth: expect.any(String),
-  //             mobileNumber: "0712345678",
-  //             gender: "female",
-  //             relationship: "child",
-  //           })
-  //         )
-  //       );
-  //       expect(mockDispatch).toHaveBeenCalledWith(handleNextStep());
-  //     });
-  //   });
-
-  it("dispatches previous step on Back button", async () => {
+  it("dispatches data when valid form is submitted", async () => {
     const user = userEvent.setup();
     render(<DependantDetails />);
 
-    await user.click(screen.getByRole("button", { name: /Back/i }));
+    await user.type(
+      screen.getByTestId("full-name-input") as HTMLInputElement,
+      "John Doe"
+    );
+    await user.type(
+      screen.getByTestId("national-id-input") as HTMLInputElement,
+      "12345678"
+    );
+    await user.type(
+      screen.getByTestId("mobile-number-input") as HTMLInputElement,
+      "0712345678"
+    );
+
+    // Set gender directly with change event
+    const genderSelect = screen.getByTestId(
+      "gender-select"
+    ) as HTMLSelectElement;
+    fireEvent.change(genderSelect, { target: { value: "female" } });
+
+    // Debug: Log gender select DOM and value
+    await user.click(genderSelect);
+
+    // Set relationship directly with change event
+    const relationshipSelect = screen.getByTestId(
+      "relationship-select"
+    ) as HTMLSelectElement;
+    fireEvent.change(relationshipSelect, { target: { value: "child" } });
+
+    // Debug: Log relationship select DOM and value
+    await user.click(relationshipSelect);
+
+    // Set dob directly to bypass datepicker issues
+    const dobButton = screen.getByTestId("date-of-birth-button");
+    fireEvent.click(dobButton); // Open popover
+    await waitFor(async () => {
+      const dateButton = await screen.findByRole("button", {
+        name: new RegExp(`August 6th, 2025`, "i"),
+      });
+      await user.click(dateButton);
+    });
+
+    // Debug: Log form field values
+    console.log("Form field values:", {
+      fullName: (screen.getByTestId("full-name-input") as HTMLInputElement)
+        .value,
+      dob: (screen.getByTestId("date-of-birth-button") as HTMLButtonElement)
+        .textContent,
+      nationalId: (screen.getByTestId("national-id-input") as HTMLInputElement)
+        .value,
+      mobileNumber: (
+        screen.getByTestId("mobile-number-input") as HTMLInputElement
+      ).value,
+      gender: (screen.getByTestId("gender-select") as HTMLSelectElement).value,
+      address: (screen.getByTestId("relationship-s") as HTMLInputElement).value,
+    });
+
+    // Submit form
+    const nextButton = screen.getByTestId("next-button");
+    await user.click(nextButton);
+
+    // Debug: Log mockDispatch calls
+    await waitFor(
+      () => {
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: "onBoardingProcess/handlePrincipalAccount",
+          payload: {
+            fullName: "John Doe",
+            dob: expect.stringMatching(/2025-08-06/),
+            nationalId: "12345678",
+            mobileNumber: "0712345678",
+            gender: "female",
+            relationship: "spouse",
+          },
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(handleNextStep());
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it("dispatches handlePreviousStep when back button is clicked", () => {
+    render(<DependantDetails />);
+    fireEvent.click(screen.getByTestId("back-button"));
 
     expect(mockDispatch).toHaveBeenCalledWith(handlePreviousStep());
   });
-
-  //   it("shows validation errors when submitting empty form", async () => {
-  //     const user = userEvent.setup();
-  //     render(<DependantDetails />);
-
-  //     // Click next without filling fields
-  //     await user.click(screen.getByRole("button", { name: /next/i }));
-
-  //     // Assert validation errors from zod schema
-  //     expect(
-  //       await screen.findByText(/Full name must be at least 2 characters\./i)
-  //     ).toBeInTheDocument();
-
-  //     expect(
-  //       screen.getByText(/Date of birth is required\./i)
-  //     ).toBeInTheDocument();
-
-  //     expect(
-  //       screen.getByText(/National ID must be at least 6 characters\./i)
-  //     ).toBeInTheDocument();
-
-  //     expect(
-  //       screen.getByText(/Mobile number must be at least 10 digits\./i)
-  //     ).toBeInTheDocument();
-
-  //     expect(screen.getByText(/Please select a gender\./i)).toBeInTheDocument();
-
-  //     expect(
-  //       screen.getByText(/Please select a relationship\./i)
-  //     ).toBeInTheDocument();
-  //   });
 });
