@@ -17,12 +17,44 @@ export function ProgressIndicator({
   currentStep,
 }: ProgressIndicatorProps) {
   return (
-    <div className="flex items-center justify-center space-x-8">
-      {steps.map((step, index) => (
-        <div key={step.step} className="flex items-center">
-          <div className="flex items-center space-x-3">
-            <div
-              className={`
+    <div>
+      <div className="md:hidden">
+        <div className="flex justify-around items-center">
+          {steps.map((step, index) => (
+            <div key={step.step} className="flex items-center">
+              <div className="flex items-center">
+                <div
+                  className={`
+                  w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+                  ${
+                    step.completed
+                      ? "bg-[#376A20] text-white"
+                      : step.step === currentStep
+                      ? "bg-[#376A20] text-white"
+                      : "bg-[#B8B8B8] text-white"
+                  }
+                `}
+                >
+                  {step.completed ? (
+                    <Check className="w-3 h-3" />
+                  ) : (
+                    <span className="text-sm">{step.step}</span>
+                  )}
+                </div>
+              </div>
+              {index < steps.length - 1 && (
+                <div className="w-8 h-px bg-[#B8B8B8] mx-4" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="hidden md:flex items-center justify-center space-x-8">
+        {steps.map((step, index) => (
+          <div key={step.step} className="flex items-center">
+            <div className="flex items-center space-x-3">
+              <div
+                className={`
               w-8 h-8 rounded-full flex items-center justify-center
               ${
                 step.completed
@@ -32,15 +64,15 @@ export function ProgressIndicator({
                   : "bg-[#B8B8B8] text-white"
               }
             `}
-            >
-              {step.completed ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <span className="text-sm">{step.step}</span>
-              )}
-            </div>
-            <span
-              className={`
+              >
+                {step.completed ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <span className="text-sm">{step.step}</span>
+                )}
+              </div>
+              <span
+                className={`
               ${
                 step.step === currentStep
                   ? "text-[#000000]"
@@ -49,15 +81,17 @@ export function ProgressIndicator({
                   : "text-[#000000]"
               }
             `}
-            >
-              {step.title}
-            </span>
+              >
+                {step.title}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className="w-12 h-px bg-[#B8B8B8] mx-4" />
+            )}
           </div>
-          {index < steps.length - 1 && (
-            <div className="w-12 h-px bg-[#B8B8B8] mx-4" />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
+
 }

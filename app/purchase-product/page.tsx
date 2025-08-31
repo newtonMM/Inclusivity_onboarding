@@ -38,7 +38,7 @@ export default function PurchaseProduct() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 pb-20 gap-16 sm:p-20 space-y-12">
+    <div className="min-h-screen bg-gray-100 md:p-8 p-6 pb-20 gap-16 sm:p-10 space-y-12">
       <ProgressIndicator currentStep={onboardingStep} steps={steps} />
       {componentToRender(onboardingStep)}
     </div>
