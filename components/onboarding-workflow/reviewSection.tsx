@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { createPolicy } from "@/thunks/Policy";
 import { is } from "date-fns/locale";
 import { LoadingSpinner } from "../ui/loadingSpinner";
+import { useMutation } from "@tanstack/react-query";
+import { createPolicyService } from "@/services/createPolicy";
 
 interface ReviewAndPayProps {
   onBack: () => void;
@@ -21,6 +23,19 @@ export function ReviewSection({ onBack }: ReviewAndPayProps) {
   const benefitPackage =
     selectedProduct === "legal" ? "KSH 100,000" : "KSH 150,000";
   const totalPremium = 300;
+
+  /// using react-query to make api calls
+
+  const policyMutate = useMutation({
+    mutationFn: createPolicyService,
+    onSuccess: () => {
+      //  can invalidate a query to refetch data
+    },
+    onError: () => {
+      // Handle error
+      // Optionally show error notification toast
+    },
+  });
 
   const handleSubmit = () => {
     dispatch(
