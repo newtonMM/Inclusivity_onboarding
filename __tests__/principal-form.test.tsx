@@ -40,6 +40,7 @@ describe("UserDetailsForm", () => {
     expect(screen.getByTestId("mobile-number-input")).toBeInTheDocument();
     expect(screen.getByTestId("gender-select")).toBeInTheDocument();
     expect(screen.getByTestId("address-input")).toBeInTheDocument();
+    expect(screen.getByTestId("next-button")).toBeInTheDocument();
   });
 
   it("shows validation errors when submitting empty form", async () => {
@@ -111,8 +112,21 @@ describe("UserDetailsForm", () => {
       await user.click(dateButton);
     });
 
-    const nextButton = screen.getByTestId("next-button");
-    await user.click(nextButton);
+    // Debug: Log form field values
+    console.log("Form field values:", {
+      fullName: (screen.getByTestId("full-name-input") as HTMLInputElement)
+        .value,
+      dob: (screen.getByTestId("dob-button") as HTMLButtonElement).textContent,
+      nationalId: (screen.getByTestId("national-id-input") as HTMLInputElement)
+        .value,
+      mobileNumber: (
+        screen.getByTestId("mobile-number-input") as HTMLInputElement
+      ).value,
+      gender: (screen.getByTestId("gender-select") as HTMLSelectElement).value,
+      address: (screen.getByTestId("address-input") as HTMLInputElement).value,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
     await waitFor(
       () => {
